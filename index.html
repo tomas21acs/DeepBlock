@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DeepRide - Deep Work Tracker</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="config-warning" class="config-warning hidden" role="alert">
+      <strong>Action needed:</strong>
+      <span id="config-warning-message"
+        >Update <code>firebaseConfig</code> inside <code>script.js</code> with your
+        Firebase project values to enable authentication.</span
+      >
+    </div>
+    <div id="app">
+      <main id="auth-screen" class="card">
+        <h1>DeepRide</h1>
+        <p class="subtitle">Climb the Stelvio Pass one Deep Block at a time.</p>
+        <div class="tab-toggle">
+          <button id="show-login" class="active">Login</button>
+          <button id="show-register">Register</button>
+        </div>
+        <form id="login-form" class="auth-form">
+          <label>
+            Email
+            <input type="email" id="login-email" required />
+          </label>
+          <label>
+            Password
+            <input type="password" id="login-password" required />
+          </label>
+          <button type="submit" class="primary">Login</button>
+          <p class="form-feedback" id="login-feedback"></p>
+        </form>
+        <form id="register-form" class="auth-form hidden">
+          <label>
+            Email
+            <input type="email" id="register-email" required />
+          </label>
+          <label>
+            Password
+            <input type="password" id="register-password" required />
+          </label>
+          <button type="submit" class="primary">Create Account</button>
+          <p class="form-feedback" id="register-feedback"></p>
+        </form>
+      </main>
+
+      <div id="dashboard" class="hidden">
+        <header>
+          <div>
+            <h2>DeepRide Dashboard</h2>
+            <p id="welcome"></p>
+          </div>
+          <button id="logout" class="secondary">Log out</button>
+        </header>
+
+        <section class="progress card">
+          <div class="progress-header">
+            <div class="progress-copy">
+              <h3>Stelvio Ascent</h3>
+              <p class="progress-subtitle">
+                Every Deep Block powers your ride toward the summit.
+              </p>
+            </div>
+            <p id="total-progress-text" class="progress-total">
+              Loading progress...
+            </p>
+          </div>
+          <div
+            class="stelvio-visual"
+            role="img"
+            aria-label="Cyclist climbing the Stelvio Pass representing your DeepRide progress"
+          >
+            <svg
+              id="stelvio-scene"
+              viewBox="0 0 600 360"
+              preserveAspectRatio="xMidYMid meet"
+              aria-hidden="true"
+            >
+              <defs>
+                <linearGradient id="skyGradient" x1="0" y1="1" x2="0" y2="0">
+                  <stop offset="0%" stop-color="#060e1d" />
+                  <stop offset="50%" stop-color="#0b1733" />
+                  <stop offset="100%" stop-color="#132957" />
+                </linearGradient>
+                <linearGradient id="mountainGradient" x1="0" y1="1" x2="0.4" y2="0">
+                  <stop offset="0%" stop-color="#0f1b30" />
+                  <stop offset="100%" stop-color="#1e345e" />
+                </linearGradient>
+                <linearGradient id="mountainLight" x1="0" y1="1" x2="0.7" y2="0">
+                  <stop offset="0%" stop-color="#13223f" />
+                  <stop offset="100%" stop-color="#254f85" />
+                </linearGradient>
+                <linearGradient id="roadGradient" x1="0" y1="1" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#192a44" />
+                  <stop offset="100%" stop-color="#274b7e" />
+                </linearGradient>
+                <linearGradient id="progressGradient" x1="0" y1="1" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#38bdf8" />
+                  <stop offset="50%" stop-color="#60a5fa" />
+                  <stop offset="100%" stop-color="#a855f7" />
+                </linearGradient>
+                <radialGradient id="summitGradient" cx="0.5" cy="0.5" r="0.6">
+                  <stop offset="0%" stop-color="#a855f7" stop-opacity="0.85" />
+                  <stop offset="60%" stop-color="#38bdf8" stop-opacity="0.35" />
+                  <stop offset="100%" stop-color="#1e1b4b" stop-opacity="0" />
+                </radialGradient>
+              </defs>
+
+              <rect width="600" height="360" fill="url(#skyGradient)" />
+
+              <g class="stars" opacity="0.6">
+                <circle cx="70" cy="40" r="1.5" />
+                <circle cx="140" cy="70" r="1.2" />
+                <circle cx="210" cy="30" r="1.8" />
+                <circle cx="320" cy="60" r="1.4" />
+                <circle cx="410" cy="40" r="1.6" />
+                <circle cx="520" cy="30" r="1.2" />
+              </g>
+
+              <g class="mountains">
+                <path
+                  class="mountain-back"
+                  d="M0 300 L80 220 L140 250 L210 190 L280 230 L350 170 L430 220 L500 180 L600 220 L600 360 L0 360 Z"
+                  fill="url(#mountainGradient)"
+                ></path>
+                <path
+                  class="mountain-front"
+                  d="M0 340 L90 260 L170 300 L250 240 L310 280 L380 230 L450 260 L520 220 L600 260 L600 360 L0 360 Z"
+                  fill="url(#mountainLight)"
+                ></path>
+              </g>
+
+              <g class="clouds" opacity="0.75">
+                <path
+                  class="cloud cloud-left"
+                  d="M90 120c-15 0-28 10-28 24 0 12 10 22 24 22h46c16 0 28-10 28-24s-12-22-26-22c-6-12-18-20-30-20-14 0-28 10-30 20z"
+                  fill="#1a2e52"
+                ></path>
+                <path
+                  class="cloud cloud-right"
+                  d="M420 90c-14 0-26 9-26 22 0 11 9 20 22 20h42c15 0 26-9 26-22s-11-22-24-22c-6-11-17-18-28-18-12 0-24 9-26 18z"
+                  fill="#1b3156"
+                ></path>
+              </g>
+
+              <g class="summit" transform="translate(520 70)">
+                <circle id="summit-glow" class="summit-glow" r="70" fill="url(#summitGradient)" />
+                <path
+                  class="summit-peak"
+                  d="M-28 40 L-4 -20 L20 36 Z"
+                  fill="#1f5f9f"
+                  stroke="#67e8f9"
+                  stroke-width="1.5"
+                  stroke-linejoin="round"
+                ></path>
+                <g id="summit-flag" class="summit-flag" transform="translate(4 -24)">
+                  <line x1="0" y1="24" x2="0" y2="-12" stroke="#8be9fd" stroke-width="2" />
+                  <path
+                    d="M0 -12 L34 -6 L0 0 Z"
+                    fill="#38bdf8"
+                    stroke="#a855f7"
+                    stroke-width="1.2"
+                  ></path>
+                  <text class="summit-text" x="6" y="-4">STELVIO</text>
+                  <text class="summit-text" x="10" y="6">27 KM</text>
+                </g>
+              </g>
+
+              <path
+                id="stelvio-road-path"
+                class="stelvio-road"
+                d="M60 320 C 130 300 170 270 220 255 S 310 250 296 205 S 210 160 276 146 S 388 142 362 94 S 292 66 352 48 S 468 38 520 70"
+                fill="none"
+                stroke="url(#roadGradient)"
+                stroke-width="24"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              ></path>
+
+              <path
+                id="stelvio-progress-path"
+                class="stelvio-road-progress"
+                d="M60 320 C 130 300 170 270 220 255 S 310 250 296 205 S 210 160 276 146 S 388 142 362 94 S 292 66 352 48 S 468 38 520 70"
+                fill="none"
+                stroke="url(#progressGradient)"
+                stroke-width="16"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                opacity="0"
+              ></path>
+
+              <g id="stelvio-cyclist" class="stelvio-cyclist" transform="translate(60 320)">
+                <circle class="cyclist-wheel" cx="-18" cy="0" r="14"></circle>
+                <circle class="cyclist-wheel" cx="18" cy="0" r="14"></circle>
+                <path
+                  class="cyclist-frame"
+                  d="M-18 0 L-4 -16 L12 0 L-6 0 Z"
+                  fill="none"
+                  stroke-width="4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                ></path>
+                <path
+                  class="cyclist-body"
+                  d="M-4 -16 Q-2 -30 8 -26 Q12 -16 4 -10 L10 -4"
+                  fill="none"
+                  stroke-width="4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                ></path>
+                <circle class="cyclist-head" cx="6" cy="-32" r="6"></circle>
+              </g>
+            </svg>
+            <div class="progress-markers">
+              <span>0 km</span>
+              <span>Summit · 27 km</span>
+            </div>
+          </div>
+          <button id="start-deep-block" class="primary">Start New Deep Block</button>
+        </section>
+
+        <section class="card" id="active-deep-block" aria-live="polite">
+          <h3>New Deep Block</h3>
+          <form id="deep-block-form" class="deep-block-form hidden">
+            <label>
+              Duration (minutes)
+              <input type="number" id="duration" min="1" max="300" required />
+            </label>
+            <label>
+              Goal
+              <input type="text" id="goal" maxlength="100" required />
+            </label>
+            <button type="submit" class="primary">Start</button>
+            <p class="form-feedback" id="deep-block-feedback"></p>
+          </form>
+          <div id="countdown" class="hidden">
+            <div class="timer-circle">
+              <svg viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="54" class="timer-bg"></circle>
+                <circle cx="60" cy="60" r="54" class="timer-progress" id="timer-progress"></circle>
+              </svg>
+              <div class="timer-text">
+                <span id="timer-display">00:00</span>
+              </div>
+            </div>
+            <button id="cancel-timer" class="secondary">Cancel</button>
+          </div>
+          <div id="post-block" class="hidden">
+            <h4>Great job!</h4>
+            <form id="post-block-form">
+              <label>
+                Focus rating (1-10)
+                <input type="number" id="focus-rating" min="1" max="10" required />
+              </label>
+              <label>
+                Completion rating (1-10)
+                <input type="number" id="completion-rating" min="1" max="10" required />
+              </label>
+              <button type="submit" class="primary">Save Deep Block</button>
+              <p class="form-feedback" id="post-block-feedback"></p>
+            </form>
+          </div>
+        </section>
+
+        <section class="card" id="history">
+          <div class="history-header">
+            <h3>Deep Block History</h3>
+            <button id="refresh-history" class="secondary">Refresh</button>
+          </div>
+          <ul id="history-list" class="history-list"></ul>
+        </section>
+      </div>
+    </div>
+
+    <div id="confetti-container" aria-hidden="true"></div>
+
+    <script type="module" src="script.js"></script>
+  </body>
+</html>
