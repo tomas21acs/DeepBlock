@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DeepRide - Deep Work Tracker</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <main id="auth-screen" class="card">
+        <h1>DeepRide</h1>
+        <p class="subtitle">Climb the Stelvio Pass one Deep Block at a time.</p>
+        <div class="tab-toggle">
+          <button id="show-login" class="active">Login</button>
+          <button id="show-register">Register</button>
+        </div>
+        <form id="login-form" class="auth-form">
+          <label>
+            Email
+            <input type="email" id="login-email" required />
+          </label>
+          <label>
+            Password
+            <input type="password" id="login-password" required />
+          </label>
+          <button type="submit" class="primary">Login</button>
+          <p class="form-feedback" id="login-feedback"></p>
+        </form>
+        <form id="register-form" class="auth-form hidden">
+          <label>
+            Email
+            <input type="email" id="register-email" required />
+          </label>
+          <label>
+            Password
+            <input type="password" id="register-password" required />
+          </label>
+          <button type="submit" class="primary">Create Account</button>
+          <p class="form-feedback" id="register-feedback"></p>
+        </form>
+      </main>
+
+      <div id="dashboard" class="hidden">
+        <header>
+          <div>
+            <h2>DeepRide Dashboard</h2>
+            <p id="welcome"></p>
+          </div>
+          <button id="logout" class="secondary">Log out</button>
+        </header>
+
+        <section class="progress card">
+          <h3>Total Progress</h3>
+          <p id="total-progress-text">Loading progress...</p>
+          <div class="progress-road">
+            <div class="progress-track"></div>
+            <div class="progress-fill" id="progress-fill"></div>
+            <div class="cyclist" id="cyclist" aria-hidden="true">🚴</div>
+            <div class="km-labels">
+              <span>0 km</span>
+              <span>27 km</span>
+            </div>
+          </div>
+          <button id="start-deep-block" class="primary">Start New Deep Block</button>
+        </section>
+
+        <section class="card" id="active-deep-block" aria-live="polite">
+          <h3>New Deep Block</h3>
+          <form id="deep-block-form" class="deep-block-form hidden">
+            <label>
+              Duration (minutes)
+              <input type="number" id="duration" min="1" max="300" required />
+            </label>
+            <label>
+              Goal
+              <input type="text" id="goal" maxlength="100" required />
+            </label>
+            <button type="submit" class="primary">Start</button>
+            <p class="form-feedback" id="deep-block-feedback"></p>
+          </form>
+          <div id="countdown" class="hidden">
+            <div class="timer-circle">
+              <svg viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="54" class="timer-bg"></circle>
+                <circle cx="60" cy="60" r="54" class="timer-progress" id="timer-progress"></circle>
+              </svg>
+              <div class="timer-text">
+                <span id="timer-display">00:00</span>
+              </div>
+            </div>
+            <button id="cancel-timer" class="secondary">Cancel</button>
+          </div>
+          <div id="post-block" class="hidden">
+            <h4>Great job!</h4>
+            <form id="post-block-form">
+              <label>
+                Focus rating (1-10)
+                <input type="number" id="focus-rating" min="1" max="10" required />
+              </label>
+              <label>
+                Completion rating (1-10)
+                <input type="number" id="completion-rating" min="1" max="10" required />
+              </label>
+              <button type="submit" class="primary">Save Deep Block</button>
+              <p class="form-feedback" id="post-block-feedback"></p>
+            </form>
+          </div>
+        </section>
+
+        <section class="card" id="history">
+          <div class="history-header">
+            <h3>Deep Block History</h3>
+            <button id="refresh-history" class="secondary">Refresh</button>
+          </div>
+          <ul id="history-list" class="history-list"></ul>
+        </section>
+      </div>
+    </div>
+
+    <div id="confetti-container" aria-hidden="true"></div>
+
+    <script type="module" src="script.js"></script>
+  </body>
+</html>
