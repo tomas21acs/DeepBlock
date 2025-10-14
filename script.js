@@ -47,11 +47,8 @@ const showRegisterBtn = document.getElementById('show-register');
 const dashboard = document.getElementById('dashboard');
 const welcomeText = document.getElementById('welcome');
 const totalProgressText = document.getElementById('total-progress-text');
-const stelvioVisual = document.querySelector('.stelvio-visual');
-const stelvioPath = document.getElementById('stelvio-road-path');
-const stelvioProgressPath = document.getElementById('stelvio-progress-path');
-const stelvioCyclist = document.getElementById('stelvio-cyclist');
-const summitGlow = document.getElementById('summit-glow');
+const progressFill = document.getElementById('progress-fill');
+const cyclist = document.getElementById('cyclist');
 const startDeepBlockBtn = document.getElementById('start-deep-block');
 const deepBlockForm = document.getElementById('deep-block-form');
 const deepBlockFeedback = document.getElementById('deep-block-feedback');
@@ -68,37 +65,14 @@ const historyList = document.getElementById('history-list');
 const refreshHistoryBtn = document.getElementById('refresh-history');
 const logoutBtn = document.getElementById('logout');
 const confettiContainer = document.getElementById('confetti-container');
-const configWarning = document.getElementById('config-warning');
-const configWarningMessage = document.getElementById('config-warning-message');
 
 const TOTAL_KM_GOAL = 27;
 let activeUser = null;
 let totalKm = 0;
-let stelvioPathLength = 0;
 let timerInterval = null;
 let timerEnd = null;
 let activeDeepBlock = null;
 let audioContext = null;
-let firebaseReady = true;
-
-const CONFIG_INSTRUCTION =
-  'Paste the Firebase config object from Project settings → General → Your apps into firebaseConfig inside script.js, then redeploy or reload the site.';
-
-const firebaseValues = Object.values(firebaseConfig || {});
-const isConfigPlaceholder = firebaseValues.some((value) => {
-  if (typeof value !== 'string') return false;
-  const trimmed = value.trim();
-  return trimmed === '' || trimmed.includes('YOUR_') || trimmed.includes('...');
-});
-
-if (isConfigPlaceholder) {
-  firebaseReady = false;
-  showConfigWarning(
-    'The current Firebase configuration is a placeholder. ' + CONFIG_INSTRUCTION
-  );
-}
-
-setupStelvioScene();
 
 // Auth tab toggle
 showLoginBtn.addEventListener('click', () => {
@@ -126,18 +100,10 @@ loginForm.addEventListener('submit', async (event) => {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value.trim();
 
-  if (!firebaseReady) {
-    loginFeedback.textContent = CONFIG_INSTRUCTION;
-    return;
-  }
-
   try {
     await signInWithEmailAndPassword(auth, email, password);
   } catch (error) {
-    loginFeedback.textContent = handleFirebaseError(
-      error,
-      'Unable to log in right now.'
-    );
+    loginFeedback.textContent = error.message;
   }
 });
 
@@ -147,18 +113,10 @@ registerForm.addEventListener('submit', async (event) => {
   const email = document.getElementById('register-email').value.trim();
   const password = document.getElementById('register-password').value.trim();
 
-  if (!firebaseReady) {
-    registerFeedback.textContent = CONFIG_INSTRUCTION;
-    return;
-  }
-
   try {
     await createUserWithEmailAndPassword(auth, email, password);
   } catch (error) {
-    registerFeedback.textContent = handleFirebaseError(
-      error,
-      'Unable to create an account right now.'
-    );
+    registerFeedback.textContent = error.message;
   }
 });
 
@@ -187,7 +145,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 async function loadProgress() {
-  if (!activeUser || !firebaseReady) return;
+  if (!activeUser) return;
   try {
     const userDocRef = doc(db, 'users', activeUser.uid);
     const userSnapshot = await getDoc(userDocRef);
@@ -202,15 +160,13 @@ async function loadProgress() {
     }
     updateProgressUI();
   } catch (error) {
-    totalProgressText.textContent = handleFirebaseError(
-      error,
-      'Unable to load progress right now.'
-    );
+    console.error('Failed to load progress', error);
+    totalProgressText.textContent = 'Unable to load progress right now.';
   }
 }
 
 async function loadHistory() {
-  if (!activeUser || !firebaseReady) return;
+  if (!activeUser) return;
   historyList.innerHTML = '<li class="history-item">Loading...</li>';
   try {
     const userDocRef = doc(db, 'users', activeUser.uid);
@@ -247,99 +203,26 @@ async function loadHistory() {
 
     historyList.innerHTML = items.join('');
   } catch (error) {
-    const message = handleFirebaseError(
-      error,
-      'Unable to load history right now.'
-    );
-    historyList.innerHTML = `<li class="history-item"><p>${message}</p></li>`;
+    console.error('Failed to load history', error);
+    historyList.innerHTML =
+      '<li class="history-item"><p>Unable to load history right now.</p></li>';
   }
 }
 
 refreshHistoryBtn.addEventListener('click', loadHistory);
 
-function setupStelvioScene() {
-  if (!stelvioPath || !stelvioProgressPath) return;
-  try {
-    stelvioPathLength = stelvioPath.getTotalLength();
-    stelvioProgressPath.style.strokeDasharray = stelvioPathLength;
-    stelvioProgressPath.style.strokeDashoffset = stelvioPathLength;
-    stelvioProgressPath.style.opacity = 0.16;
-    updateSummitAtmosphere(0);
-    updateCyclistPosition(0);
-  } catch (error) {
-    console.warn('Unable to prepare Stelvio scene', error);
-  }
-  if (stelvioVisual) {
-    stelvioVisual.style.setProperty('--progress', '0');
-  }
-}
-
 function updateProgressUI() {
   totalKm = Number(totalKm) || 0;
   const clamped = Math.min(totalKm, TOTAL_KM_GOAL);
   const percent = TOTAL_KM_GOAL === 0 ? 0 : clamped / TOTAL_KM_GOAL;
-  totalProgressText.textContent = `You've climbed ${totalKm.toFixed(
+  totalProgressText.textContent = `You've completed ${totalKm.toFixed(
     2
-  )} km of the ${TOTAL_KM_GOAL} km Stelvio ascent`;
-  updateStelvioProgress(percent);
-}
-
-function updateStelvioProgress(percent) {
-  if (stelvioPathLength && stelvioProgressPath) {
-    const offset = stelvioPathLength * (1 - percent);
-    stelvioProgressPath.style.strokeDashoffset = offset;
-  }
-  updateCyclistPosition(percent);
-  updateSummitAtmosphere(percent);
-}
-
-function updateCyclistPosition(percent) {
-  if (!stelvioPath || !stelvioCyclist || !stelvioPathLength) return;
-  const travel = stelvioPathLength * percent;
-  const delta = Math.max(6, stelvioPathLength * 0.015);
-  try {
-    const point = stelvioPath.getPointAtLength(travel);
-    const start = Math.max(0, travel - delta);
-    const end = Math.min(stelvioPathLength, travel + delta);
-    const startPoint = stelvioPath.getPointAtLength(start);
-    const endPoint = stelvioPath.getPointAtLength(end);
-    const angle =
-      Math.atan2(endPoint.y - startPoint.y, endPoint.x - startPoint.x) *
-      (180 / Math.PI);
-    stelvioCyclist.setAttribute(
-      'transform',
-      `translate(${point.x} ${point.y}) rotate(${angle})`
-    );
-  } catch (error) {
-    console.warn('Unable to position Stelvio cyclist', error);
-  }
-  if (stelvioVisual) {
-    stelvioVisual.style.setProperty('--progress', percent.toFixed(3));
-  }
-}
-
-function updateSummitAtmosphere(percent) {
-  if (summitGlow) {
-    const base = 0.25;
-    const intensity = Math.min(1, Math.max(0, base + percent * 0.6));
-    summitGlow.style.opacity = intensity.toFixed(3);
-  }
-  if (stelvioCyclist) {
-    const blur = 10 + percent * 22;
-    const opacity = 0.35 + percent * 0.55;
-    stelvioCyclist.style.filter = `drop-shadow(0 0 ${blur}px rgba(96, 165, 250, ${opacity}))`;
-  }
-  if (stelvioProgressPath) {
-    const roadGlow = 0.16 + percent * 0.56;
-    stelvioProgressPath.style.opacity = roadGlow;
-  }
+  )} km out of ${TOTAL_KM_GOAL} km`;
+  progressFill.style.width = `${percent * 90}%`;
+  cyclist.style.left = `calc(${5 + percent * 90}% - 20px)`;
 }
 
 startDeepBlockBtn.addEventListener('click', () => {
-  if (!firebaseReady) {
-    deepBlockFeedback.textContent = CONFIG_INSTRUCTION;
-    return;
-  }
   deepBlockForm.classList.remove('hidden');
   deepBlockFeedback.textContent = '';
   deepBlockForm.scrollIntoView({ behavior: 'smooth' });
@@ -347,10 +230,6 @@ startDeepBlockBtn.addEventListener('click', () => {
 
 deepBlockForm.addEventListener('submit', (event) => {
   event.preventDefault();
-  if (!firebaseReady) {
-    deepBlockFeedback.textContent = CONFIG_INSTRUCTION;
-    return;
-  }
   const duration = Number(document.getElementById('duration').value);
   const goal = document.getElementById('goal').value.trim();
 
@@ -440,10 +319,7 @@ function showPostBlockForm() {
 
 postBlockForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  if (!activeDeepBlock || !activeUser || !firebaseReady) {
-    postBlockFeedback.textContent = CONFIG_INSTRUCTION;
-    return;
-  }
+  if (!activeDeepBlock || !activeUser) return;
 
   const focus = Number(focusRatingInput.value);
   const completion = Number(completionRatingInput.value);
@@ -489,10 +365,7 @@ postBlockForm.addEventListener('submit', async (event) => {
     )} km.`;
   } catch (error) {
     postBlockFeedback.style.color = 'var(--danger)';
-    postBlockFeedback.textContent = handleFirebaseError(
-      error,
-      'Unable to save this Deep Block. Please try again.'
-    );
+    postBlockFeedback.textContent = error.message;
     return;
   }
 
@@ -525,35 +398,6 @@ function resetDeepBlockUI() {
 function triggerCelebration() {
   playSuccessSound();
   launchConfetti();
-}
-
-function isInvalidApiKeyError(error) {
-  const message = (error?.message || '').toLowerCase();
-  const code = (error?.code || '').toLowerCase();
-  return code.includes('invalid-api-key') || message.includes('api-key');
-}
-
-function handleConfigIssue(message) {
-  firebaseReady = false;
-  showConfigWarning(message);
-}
-
-function showConfigWarning(message) {
-  if (!configWarning || !configWarningMessage) return;
-  configWarning.classList.remove('hidden');
-  configWarningMessage.textContent = message;
-}
-
-function handleFirebaseError(error, fallbackMessage) {
-  console.error(error);
-  if (isInvalidApiKeyError(error)) {
-    handleConfigIssue(
-      'Firebase rejected the API key that is currently configured. ' +
-        CONFIG_INSTRUCTION
-    );
-    return 'Your Firebase configuration is invalid. Please update firebaseConfig in script.js.';
-  }
-  return error?.message || fallbackMessage;
 }
 
 function playSuccessSound() {

@@ -20,30 +20,9 @@ body {
   background: var(--bg-gradient);
   color: var(--text);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 2rem 1rem;
-  gap: 1.5rem;
-}
-
-.config-warning {
-  width: min(900px, 100%);
-  margin: 0 auto;
-  padding: 1rem 1.5rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(248, 113, 113, 0.4);
-  background: rgba(248, 113, 113, 0.12);
-  color: #fecaca;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  line-height: 1.45;
-  box-shadow: 0 12px 30px -12px rgba(248, 113, 113, 0.45);
-}
-
-.config-warning strong {
-  color: #fca5a5;
 }
 
 #app {
@@ -169,245 +148,50 @@ header {
   gap: 1rem;
 }
 
-.progress-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem 2rem;
-}
-
-.progress-copy h3 {
-  margin: 0;
-}
-
-.progress-subtitle {
-  margin-top: 0.35rem;
-  color: var(--muted);
-  font-size: 0.95rem;
-  max-width: 32ch;
-}
-
-.progress-total {
-  margin: 0;
-  font-weight: 600;
-  color: var(--text);
-  font-size: 1.05rem;
-  text-align: right;
-}
-
-.stelvio-visual {
-  --progress: 0;
+.progress-road {
   position: relative;
   margin-top: 1.5rem;
-  border-radius: 1.75rem;
-  overflow: hidden;
-  background: radial-gradient(circle at 30% 30%, #12213b 0%, #0b1426 65%, #060a18 100%);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  box-shadow: 0 24px 48px rgba(2, 12, 27, 0.6);
-  min-height: 260px;
-  isolation: isolate;
+  height: 120px;
 }
 
-.stelvio-visual::before,
-.stelvio-visual::after {
-  content: '';
+.progress-track {
   position: absolute;
-  inset: 0;
-  pointer-events: none;
+  left: 5%;
+  right: 5%;
+  top: 50%;
+  height: 10px;
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 999px;
+  transform: translateY(-50%);
 }
 
-.stelvio-visual::before {
-  background: radial-gradient(circle at 20% 85%, rgba(96, 165, 250, 0.25), transparent 55%);
-  mix-blend-mode: screen;
-}
-
-.stelvio-visual::after {
-  background: linear-gradient(180deg, transparent 60%, rgba(2, 6, 23, 0.85) 100%);
-  opacity: calc(0.25 + var(--progress) * 0.6);
-  transition: opacity 0.8s ease;
-}
-
-.stelvio-visual svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 24px 32px rgba(6, 12, 28, 0.6));
-}
-
-.stars circle {
-  fill: rgba(148, 163, 184, 0.45);
-}
-
-.mountain-back {
-  filter: brightness(0.95);
-}
-
-.mountain-front {
-  filter: brightness(1.05);
-}
-
-.cloud {
-  filter: blur(0.4px);
-}
-
-.cloud-left {
-  animation: driftLeft 22s linear infinite;
-}
-
-.cloud-right {
-  animation: driftRight 28s linear infinite;
-}
-
-.summit-text {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  fill: #e0f2fe;
-  text-anchor: start;
-  dominant-baseline: middle;
-  text-transform: uppercase;
-}
-
-.summit-glow {
-  opacity: 0.25;
-  transition: opacity 0.8s ease;
-}
-
-.summit-flag {
-  animation: flagWave 4s ease-in-out infinite;
-  transform-origin: 0px -6px;
-}
-
-.stelvio-road {
-  stroke-opacity: 0.65;
-}
-
-.stelvio-road-progress {
-  stroke-dasharray: 0;
-  stroke-dashoffset: 0;
-  opacity: 0.12;
-  transition: stroke-dashoffset 0.9s cubic-bezier(0.33, 1, 0.68, 1),
-    opacity 0.6s ease;
-}
-
-.stelvio-cyclist {
-  stroke: #8be9fd;
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transform-box: fill-box;
-  transform-origin: center;
-  transition: transform 0.9s cubic-bezier(0.33, 1, 0.68, 1),
-    filter 0.9s ease;
-}
-
-.stelvio-cyclist .cyclist-wheel {
-  stroke-width: 3.5;
-  stroke: rgba(125, 211, 252, 0.9);
-  fill: rgba(15, 118, 185, 0.2);
-  stroke-dasharray: 10 14;
-  animation: wheelSpin 5s linear infinite;
-}
-
-.stelvio-cyclist .cyclist-frame {
-  stroke: #38bdf8;
-}
-
-.stelvio-cyclist .cyclist-body {
-  stroke: #a855f7;
-}
-
-.stelvio-cyclist .cyclist-head {
-  fill: #f9a8d4;
-  stroke: #38bdf8;
-  stroke-width: 2;
-}
-
-.progress-markers {
+.progress-fill {
   position: absolute;
-  inset: auto 1.75rem 1.5rem 1.75rem;
+  left: 5%;
+  top: 50%;
+  height: 10px;
+  background: linear-gradient(90deg, var(--accent), #22d3ee);
+  border-radius: 999px;
+  transform: translateY(-50%);
+  width: 0%;
+}
+
+.cyclist {
+  position: absolute;
+  top: calc(50% - 28px);
+  font-size: 2rem;
+  transition: left 0.6s ease;
+}
+
+.km-labels {
+  position: absolute;
+  bottom: 0;
+  width: 90%;
+  left: 5%;
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: rgba(191, 219, 254, 0.7);
-  font-weight: 600;
-  pointer-events: none;
-}
-
-@keyframes wheelSpin {
-  to {
-    stroke-dashoffset: -120;
-  }
-}
-
-@keyframes driftLeft {
-  0% {
-    transform: translateX(0px);
-  }
-  50% {
-    transform: translateX(18px);
-  }
-  100% {
-    transform: translateX(0px);
-  }
-}
-
-@keyframes driftRight {
-  0% {
-    transform: translateX(0px);
-  }
-  50% {
-    transform: translateX(-20px);
-  }
-  100% {
-    transform: translateX(0px);
-  }
-}
-
-@keyframes flagWave {
-  0% {
-    transform: translate(4px, -24px) rotate(0deg);
-  }
-  50% {
-    transform: translate(4px, -24px) rotate(-3deg);
-  }
-  100% {
-    transform: translate(4px, -24px) rotate(0deg);
-  }
-}
-
-@media (max-width: 768px) {
-  .progress-total {
-    width: 100%;
-    text-align: left;
-  }
-
-  .stelvio-visual {
-    min-height: 220px;
-    border-radius: 1.25rem;
-  }
-
-  .progress-markers {
-    inset: auto 1.25rem 1.25rem 1.25rem;
-    font-size: 0.75rem;
-    letter-spacing: 0.12em;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .stelvio-cyclist,
-  .stelvio-road-progress,
-  .summit-flag,
-  .cloud-left,
-  .cloud-right,
-  .stelvio-cyclist .cyclist-wheel {
-    transition-duration: 0.001ms !important;
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-  }
+  font-size: 0.8rem;
+  color: var(--muted);
 }
 
 .timer-circle {
