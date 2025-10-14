@@ -22,12 +22,13 @@ import {
 
 // 1. Insert your Firebase configuration below. Replace the placeholder values with your project's keys.
 const firebaseConfig = {
-  apiKey: 'YOUR_API_KEY',
-  authDomain: 'YOUR_AUTH_DOMAIN',
-  projectId: 'YOUR_PROJECT_ID',
-  storageBucket: 'YOUR_STORAGE_BUCKET',
-  messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-  appId: 'YOUR_APP_ID',
+  apiKey: "AIzaSyBOrvsVrviKeq5iUebAqiUWdNX4IYSJmF4",
+  authDomain: "deepride-d18ae.firebaseapp.com",
+  projectId: "deepride-d18ae",
+  storageBucket: "deepride-d18ae.firebasestorage.app",
+  messagingSenderId: "606511315827",
+  appId: "1:606511315827:web:94544fde3f839f9151a306",
+  measurementId: "G-YSCPQ7X5SC"
 };
 
 // 2. Initialize Firebase using your configuration above.
@@ -46,14 +47,8 @@ const showRegisterBtn = document.getElementById('show-register');
 const dashboard = document.getElementById('dashboard');
 const welcomeText = document.getElementById('welcome');
 const totalProgressText = document.getElementById('total-progress-text');
-const angliruVisuals = document.querySelector('.angliru-visuals');
-const angliruMapPath = document.getElementById('angliru-map-path');
-const angliruMapProgress = document.getElementById('angliru-map-progress');
-const angliruMapCyclist = document.getElementById('angliru-map-cyclist');
-const angliruProfilePath = document.getElementById('angliru-profile-path');
-const angliruProfileProgress = document.getElementById('angliru-profile-progress');
-const angliruProfileCyclist = document.getElementById('angliru-profile-cyclist');
-const angliruProfileGlow = document.getElementById('angliru-profile-glow');
+const progressFill = document.getElementById('progress-fill');
+const cyclist = document.getElementById('cyclist');
 const startDeepBlockBtn = document.getElementById('start-deep-block');
 const deepBlockForm = document.getElementById('deep-block-form');
 const deepBlockFeedback = document.getElementById('deep-block-feedback');
@@ -70,38 +65,14 @@ const historyList = document.getElementById('history-list');
 const refreshHistoryBtn = document.getElementById('refresh-history');
 const logoutBtn = document.getElementById('logout');
 const confettiContainer = document.getElementById('confetti-container');
-const configWarning = document.getElementById('config-warning');
-const configWarningMessage = document.getElementById('config-warning-message');
 
-const TOTAL_KM_GOAL = 12.5;
+const TOTAL_KM_GOAL = 27;
 let activeUser = null;
 let totalKm = 0;
-let angliruMapLength = 0;
-let angliruProfileLength = 0;
 let timerInterval = null;
 let timerEnd = null;
 let activeDeepBlock = null;
 let audioContext = null;
-let firebaseReady = true;
-
-const CONFIG_INSTRUCTION =
-  'Paste the Firebase config object from Project settings → General → Your apps into firebaseConfig inside script.js, then redeploy or reload the site.';
-
-const firebaseValues = Object.values(firebaseConfig || {});
-const isConfigPlaceholder = firebaseValues.some((value) => {
-  if (typeof value !== 'string') return false;
-  const trimmed = value.trim();
-  return trimmed === '' || trimmed.includes('YOUR_') || trimmed.includes('...');
-});
-
-if (isConfigPlaceholder) {
-  firebaseReady = false;
-  showConfigWarning(
-    'The current Firebase configuration is a placeholder. ' + CONFIG_INSTRUCTION
-  );
-}
-
-setupAngliruVisuals();
 
 // Auth tab toggle
 showLoginBtn.addEventListener('click', () => {
@@ -129,18 +100,10 @@ loginForm.addEventListener('submit', async (event) => {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value.trim();
 
-  if (!firebaseReady) {
-    loginFeedback.textContent = CONFIG_INSTRUCTION;
-    return;
-  }
-
   try {
     await signInWithEmailAndPassword(auth, email, password);
   } catch (error) {
-    loginFeedback.textContent = handleFirebaseError(
-      error,
-      'Unable to log in right now.'
-    );
+    loginFeedback.textContent = error.message;
   }
 });
 
@@ -150,18 +113,10 @@ registerForm.addEventListener('submit', async (event) => {
   const email = document.getElementById('register-email').value.trim();
   const password = document.getElementById('register-password').value.trim();
 
-  if (!firebaseReady) {
-    registerFeedback.textContent = CONFIG_INSTRUCTION;
-    return;
-  }
-
   try {
     await createUserWithEmailAndPassword(auth, email, password);
   } catch (error) {
-    registerFeedback.textContent = handleFirebaseError(
-      error,
-      'Unable to create an account right now.'
-    );
+    registerFeedback.textContent = error.message;
   }
 });
 
@@ -190,7 +145,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 async function loadProgress() {
-  if (!activeUser || !firebaseReady) return;
+  if (!activeUser) return;
   try {
     const userDocRef = doc(db, 'users', activeUser.uid);
     const userSnapshot = await getDoc(userDocRef);
@@ -205,15 +160,13 @@ async function loadProgress() {
     }
     updateProgressUI();
   } catch (error) {
-    totalProgressText.textContent = handleFirebaseError(
-      error,
-      'Unable to load progress right now.'
-    );
+    console.error('Failed to load progress', error);
+    totalProgressText.textContent = 'Unable to load progress right now.';
   }
 }
 
 async function loadHistory() {
-  if (!activeUser || !firebaseReady) return;
+  if (!activeUser) return;
   historyList.innerHTML = '<li class="history-item">Loading...</li>';
   try {
     const userDocRef = doc(db, 'users', activeUser.uid);
@@ -250,126 +203,26 @@ async function loadHistory() {
 
     historyList.innerHTML = items.join('');
   } catch (error) {
-    const message = handleFirebaseError(
-      error,
-      'Unable to load history right now.'
-    );
-    historyList.innerHTML = `<li class="history-item"><p>${message}</p></li>`;
+    console.error('Failed to load history', error);
+    historyList.innerHTML =
+      '<li class="history-item"><p>Unable to load history right now.</p></li>';
   }
 }
 
 refreshHistoryBtn.addEventListener('click', loadHistory);
 
-function setupAngliruVisuals() {
-  try {
-    if (angliruMapPath && angliruMapProgress) {
-      angliruMapLength = angliruMapPath.getTotalLength();
-      angliruMapProgress.style.strokeDasharray = angliruMapLength;
-      angliruMapProgress.style.strokeDashoffset = angliruMapLength;
-      angliruMapProgress.style.opacity = 0.18;
-    }
-    if (angliruProfilePath && angliruProfileProgress) {
-      angliruProfileLength = angliruProfilePath.getTotalLength();
-      angliruProfileProgress.style.strokeDasharray = angliruProfileLength;
-      angliruProfileProgress.style.strokeDashoffset = angliruProfileLength;
-      angliruProfileProgress.style.opacity = 0.22;
-    }
-    updateAngliruAtmosphere(0);
-    positionCyclistOnPath(angliruMapPath, angliruMapCyclist, angliruMapLength, 0);
-    positionCyclistOnPath(
-      angliruProfilePath,
-      angliruProfileCyclist,
-      angliruProfileLength,
-      0
-    );
-  } catch (error) {
-    console.warn('Unable to prepare Angliru visuals', error);
-  }
-  if (angliruVisuals) {
-    angliruVisuals.style.setProperty('--progress', '0');
-  }
-}
-
 function updateProgressUI() {
   totalKm = Number(totalKm) || 0;
   const clamped = Math.min(totalKm, TOTAL_KM_GOAL);
   const percent = TOTAL_KM_GOAL === 0 ? 0 : clamped / TOTAL_KM_GOAL;
-  totalProgressText.textContent = `You've climbed ${totalKm.toFixed(
+  totalProgressText.textContent = `You've completed ${totalKm.toFixed(
     2
-  )} km of the ${TOTAL_KM_GOAL} km Angliru ascent`;
-  updateAngliruProgress(percent);
-}
-
-function updateAngliruProgress(percent) {
-  setPathProgress(angliruMapProgress, angliruMapLength, percent);
-  setPathProgress(angliruProfileProgress, angliruProfileLength, percent);
-  positionCyclistOnPath(angliruMapPath, angliruMapCyclist, angliruMapLength, percent);
-  positionCyclistOnPath(
-    angliruProfilePath,
-    angliruProfileCyclist,
-    angliruProfileLength,
-    percent
-  );
-  updateAngliruAtmosphere(percent);
-}
-
-function setPathProgress(progressElement, totalLength, percent) {
-  if (!progressElement || !totalLength) return;
-  const clamped = Math.min(1, Math.max(0, percent));
-  const offset = totalLength * (1 - clamped);
-  progressElement.style.strokeDashoffset = offset;
-  const glow = 0.2 + clamped * 0.65;
-  progressElement.style.opacity = glow.toFixed(3);
-}
-
-function positionCyclistOnPath(pathElement, cyclistElement, totalLength, percent) {
-  if (!pathElement || !cyclistElement || !totalLength) return;
-  const safePercent = Math.min(1, Math.max(0, percent));
-  const travel = totalLength * safePercent;
-  const delta = Math.max(6, totalLength * 0.012);
-  try {
-    const point = pathElement.getPointAtLength(travel);
-    const start = Math.max(0, travel - delta);
-    const end = Math.min(totalLength, travel + delta);
-    const startPoint = pathElement.getPointAtLength(start);
-    const endPoint = pathElement.getPointAtLength(end);
-    const angle =
-      Math.atan2(endPoint.y - startPoint.y, endPoint.x - startPoint.x) *
-      (180 / Math.PI);
-    cyclistElement.setAttribute(
-      'transform',
-      `translate(${point.x} ${point.y}) rotate(${angle})`
-    );
-    cyclistElement.style.filter = `drop-shadow(0 0 ${10 + safePercent * 18}px rgba(56, 189, 248, ${
-      0.35 + safePercent * 0.55
-    }))`;
-  } catch (error) {
-    console.warn('Unable to position Angliru cyclist', error);
-  }
-}
-
-function updateAngliruAtmosphere(percent) {
-  const progressValue = Math.min(1, Math.max(0, percent));
-  if (angliruVisuals) {
-    angliruVisuals.style.setProperty('--progress', progressValue.toFixed(3));
-  }
-  if (angliruMapProgress) {
-    const glow = 0.25 + progressValue * 0.6;
-    angliruMapProgress.style.filter = `drop-shadow(0 0 ${14 + progressValue * 18}px rgba(59, 130, 246, ${
-      0.35 + progressValue * 0.4
-    }))`;
-  }
-  if (angliruProfileGlow) {
-    const intensity = 0.25 + progressValue * 0.55;
-    angliruProfileGlow.style.opacity = intensity.toFixed(3);
-  }
+  )} km out of ${TOTAL_KM_GOAL} km`;
+  progressFill.style.width = `${percent * 90}%`;
+  cyclist.style.left = `calc(${5 + percent * 90}% - 20px)`;
 }
 
 startDeepBlockBtn.addEventListener('click', () => {
-  if (!firebaseReady) {
-    deepBlockFeedback.textContent = CONFIG_INSTRUCTION;
-    return;
-  }
   deepBlockForm.classList.remove('hidden');
   deepBlockFeedback.textContent = '';
   deepBlockForm.scrollIntoView({ behavior: 'smooth' });
@@ -377,10 +230,6 @@ startDeepBlockBtn.addEventListener('click', () => {
 
 deepBlockForm.addEventListener('submit', (event) => {
   event.preventDefault();
-  if (!firebaseReady) {
-    deepBlockFeedback.textContent = CONFIG_INSTRUCTION;
-    return;
-  }
   const duration = Number(document.getElementById('duration').value);
   const goal = document.getElementById('goal').value.trim();
 
@@ -470,10 +319,7 @@ function showPostBlockForm() {
 
 postBlockForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  if (!activeDeepBlock || !activeUser || !firebaseReady) {
-    postBlockFeedback.textContent = CONFIG_INSTRUCTION;
-    return;
-  }
+  if (!activeDeepBlock || !activeUser) return;
 
   const focus = Number(focusRatingInput.value);
   const completion = Number(completionRatingInput.value);
@@ -519,10 +365,7 @@ postBlockForm.addEventListener('submit', async (event) => {
     )} km.`;
   } catch (error) {
     postBlockFeedback.style.color = 'var(--danger)';
-    postBlockFeedback.textContent = handleFirebaseError(
-      error,
-      'Unable to save this Deep Block. Please try again.'
-    );
+    postBlockFeedback.textContent = error.message;
     return;
   }
 
@@ -555,35 +398,6 @@ function resetDeepBlockUI() {
 function triggerCelebration() {
   playSuccessSound();
   launchConfetti();
-}
-
-function isInvalidApiKeyError(error) {
-  const message = (error?.message || '').toLowerCase();
-  const code = (error?.code || '').toLowerCase();
-  return code.includes('invalid-api-key') || message.includes('api-key');
-}
-
-function handleConfigIssue(message) {
-  firebaseReady = false;
-  showConfigWarning(message);
-}
-
-function showConfigWarning(message) {
-  if (!configWarning || !configWarningMessage) return;
-  configWarning.classList.remove('hidden');
-  configWarningMessage.textContent = message;
-}
-
-function handleFirebaseError(error, fallbackMessage) {
-  console.error(error);
-  if (isInvalidApiKeyError(error)) {
-    handleConfigIssue(
-      'Firebase rejected the API key that is currently configured. ' +
-        CONFIG_INSTRUCTION
-    );
-    return 'Your Firebase configuration is invalid. Please update firebaseConfig in script.js.';
-  }
-  return error?.message || fallbackMessage;
 }
 
 function playSuccessSound() {

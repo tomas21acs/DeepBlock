@@ -1,318 +1,324 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DeepRide - Deep Work Tracker</title>
-    <link rel="stylesheet" href="style.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div id="config-warning" class="config-warning hidden" role="alert">
-      <strong>Action needed:</strong>
-      <span id="config-warning-message"
-        >Update <code>firebaseConfig</code> inside <code>script.js</code> with your
-        Firebase project values to enable authentication.</span
-      >
-    </div>
-    <div id="app">
-      <main id="auth-screen" class="card">
-        <h1>DeepRide</h1>
-        <p class="subtitle">Conquer the Angliru one Deep Block at a time.</p>
-        <div class="tab-toggle">
-          <button id="show-login" class="active">Login</button>
-          <button id="show-register">Register</button>
-        </div>
-        <form id="login-form" class="auth-form">
-          <label>
-            Email
-            <input type="email" id="login-email" required />
-          </label>
-          <label>
-            Password
-            <input type="password" id="login-password" required />
-          </label>
-          <button type="submit" class="primary">Login</button>
-          <p class="form-feedback" id="login-feedback"></p>
-        </form>
-        <form id="register-form" class="auth-form hidden">
-          <label>
-            Email
-            <input type="email" id="register-email" required />
-          </label>
-          <label>
-            Password
-            <input type="password" id="register-password" required />
-          </label>
-          <button type="submit" class="primary">Create Account</button>
-          <p class="form-feedback" id="register-feedback"></p>
-        </form>
-      </main>
-
-      <div id="dashboard" class="hidden">
-        <header>
-          <div>
-            <h2>DeepRide Dashboard</h2>
-            <p id="welcome"></p>
-          </div>
-          <button id="logout" class="secondary">Log out</button>
-        </header>
-
-        <section class="progress card">
-          <div class="progress-header">
-            <div class="progress-copy">
-              <h3>Alto de l'Angliru</h3>
-              <p class="progress-subtitle">
-                Every Deep Block propels you up the Asturian giant. Watch your
-                rider conquer the map and the gradient.
-              </p>
-            </div>
-            <p id="total-progress-text" class="progress-total">
-              Loading progress...
-            </p>
-          </div>
-          <div class="angliru-visuals">
-            <figure
-              class="angliru-card angliru-map"
-              role="img"
-              aria-label="Map view of the Alto de l'Angliru climb with your rider's progress"
-            >
-              <svg viewBox="0 0 520 320" preserveAspectRatio="xMidYMid meet">
-                <defs>
-                  <linearGradient id="mapSky" x1="0" y1="1" x2="0" y2="0">
-                    <stop offset="0%" stop-color="#041028" />
-                    <stop offset="60%" stop-color="#071c3f" />
-                    <stop offset="100%" stop-color="#0f2b5a" />
-                  </linearGradient>
-                  <linearGradient id="mapRelief" x1="0" y1="1" x2="1" y2="0">
-                    <stop offset="0%" stop-color="#0b1d36" />
-                    <stop offset="70%" stop-color="#122f56" />
-                    <stop offset="100%" stop-color="#123e65" />
-                  </linearGradient>
-                  <radialGradient id="mapGlow" cx="0.82" cy="0.18" r="0.45">
-                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.6" />
-                    <stop offset="65%" stop-color="#0ea5e9" stop-opacity="0.25" />
-                    <stop offset="100%" stop-color="#020617" stop-opacity="0" />
-                  </radialGradient>
-                  <linearGradient id="mapProgressGradient" x1="0" y1="1" x2="1" y2="0">
-                    <stop offset="0%" stop-color="#22d3ee" />
-                    <stop offset="50%" stop-color="#60a5fa" />
-                    <stop offset="100%" stop-color="#a855f7" />
-                  </linearGradient>
-                </defs>
-                <rect width="520" height="320" fill="url(#mapSky)" />
-                <rect width="520" height="320" fill="url(#mapRelief)" opacity="0.55" />
-                <circle cx="420" cy="70" r="120" fill="url(#mapGlow)" />
-                <g class="map-grid">
-                  <path d="M0 40 H520" stroke="rgba(56,189,248,0.08)" />
-                  <path d="M0 120 H520" stroke="rgba(56,189,248,0.08)" />
-                  <path d="M0 200 H520" stroke="rgba(56,189,248,0.08)" />
-                  <path d="M0 280 H520" stroke="rgba(56,189,248,0.08)" />
-                  <path d="M80 0 V320" stroke="rgba(56,189,248,0.08)" />
-                  <path d="M180 0 V320" stroke="rgba(56,189,248,0.08)" />
-                  <path d="M300 0 V320" stroke="rgba(56,189,248,0.08)" />
-                  <path d="M420 0 V320" stroke="rgba(56,189,248,0.08)" />
-                </g>
-                <path
-                  id="angliru-map-shadow"
-                  d="M60 276 C 120 258 146 226 184 204 S 244 156 284 142 S 340 140 362 176 S 380 232 422 214 S 484 150 520 100"
-                  fill="none"
-                  stroke="rgba(15,23,42,0.65)"
-                  stroke-width="18"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                ></path>
-                <path
-                  id="angliru-map-path"
-                  d="M60 276 C 120 258 146 226 184 204 S 244 156 284 142 S 340 140 362 176 S 380 232 422 214 S 484 150 520 100"
-                  fill="none"
-                  stroke="rgba(96,165,250,0.35)"
-                  stroke-width="12"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                ></path>
-                <path
-                  id="angliru-map-progress"
-                  d="M60 276 C 120 258 146 226 184 204 S 244 156 284 142 S 340 140 362 176 S 380 232 422 214 S 484 150 520 100"
-                  fill="none"
-                  stroke="url(#mapProgressGradient)"
-                  stroke-width="12"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-opacity="0.9"
-                ></path>
-                <g class="map-markers" fill="none" stroke="rgba(148, 163, 184, 0.55)">
-                  <circle cx="60" cy="276" r="8"></circle>
-                  <circle cx="242" cy="158" r="7"></circle>
-                  <circle cx="520" cy="100" r="9"></circle>
-                </g>
-                <g class="map-labels" font-size="12" font-weight="600">
-                  <text x="60" y="300" text-anchor="middle">La Vega · 0 km</text>
-                  <text x="242" y="138" text-anchor="middle">Les Cabanes · 6.5 km</text>
-                  <text x="520" y="84" text-anchor="end">Summit · 12.5 km</text>
-                </g>
-                <g id="angliru-map-cyclist" class="cyclist-icon" transform="translate(60 276)">
-                  <circle class="wheel" cx="-10" cy="0" r="7"></circle>
-                  <circle class="wheel" cx="10" cy="0" r="7"></circle>
-                  <path class="frame" d="M-10 0 L-2 -10 L12 2 L-4 2 Z"></path>
-                  <path class="body" d="M-2 -10 Q2 -22 12 -18 L6 -6"></path>
-                  <circle class="head" cx="12" cy="-24" r="4"></circle>
-                </g>
-              </svg>
-              <figcaption>Route overview · La Vega to Alto de l'Angliru</figcaption>
-            </figure>
-            <figure
-              class="angliru-card angliru-profile"
-              role="img"
-              aria-label="Elevation profile of the Alto de l'Angliru with gradient colours"
-            >
-              <svg viewBox="0 0 520 220" preserveAspectRatio="xMidYMid meet">
-                <defs>
-                  <linearGradient id="profileSky" x1="0" y1="1" x2="0" y2="0">
-                    <stop offset="0%" stop-color="#030712" />
-                    <stop offset="100%" stop-color="#0b1733" />
-                  </linearGradient>
-                  <linearGradient id="profileGradient" x1="0" y1="1" x2="1" y2="0">
-                    <stop offset="0%" stop-color="#22c55e" />
-                    <stop offset="35%" stop-color="#eab308" />
-                    <stop offset="65%" stop-color="#f97316" />
-                    <stop offset="100%" stop-color="#ef4444" />
-                  </linearGradient>
-                  <linearGradient id="profileProgressGradient" x1="0" y1="1" x2="1" y2="0">
-                    <stop offset="0%" stop-color="#38bdf8" />
-                    <stop offset="60%" stop-color="#60a5fa" />
-                    <stop offset="100%" stop-color="#a855f7" />
-                  </linearGradient>
-                  <radialGradient id="profileSummitGlow" cx="0.95" cy="0.1" r="0.35">
-                    <stop offset="0%" stop-color="#c084fc" stop-opacity="0.6" />
-                    <stop offset="70%" stop-color="#38bdf8" stop-opacity="0.3" />
-                    <stop offset="100%" stop-color="#020617" stop-opacity="0" />
-                  </radialGradient>
-                </defs>
-                <rect width="520" height="220" fill="url(#profileSky)" />
-                <circle id="angliru-profile-glow" cx="480" cy="40" r="120" fill="url(#profileSummitGlow)" />
-                <g class="profile-grid">
-                  <path d="M0 180 H520" stroke="rgba(148,163,184,0.08)" />
-                  <path d="M0 140 H520" stroke="rgba(148,163,184,0.08)" />
-                  <path d="M0 100 H520" stroke="rgba(148,163,184,0.08)" />
-                  <path d="M0 60 H520" stroke="rgba(148,163,184,0.08)" />
-                  <path d="M0 20 H520" stroke="rgba(148,163,184,0.08)" />
-                </g>
-                <path
-                  id="angliru-profile-area"
-                  d="M40 180 L40 148 C 120 132 160 120 200 100 C 240 78 280 60 320 52 C 360 46 400 44 440 30 C 468 20 492 16 520 12 L520 180 Z"
-                  fill="url(#profileGradient)"
-                  opacity="0.8"
-                ></path>
-                <path
-                  id="angliru-profile-path"
-                  d="M40 148 C 120 132 160 120 200 100 C 240 78 280 60 320 52 C 360 46 400 44 440 30 C 468 20 492 16 520 12"
-                  fill="none"
-                  stroke="rgba(15,23,42,0.7)"
-                  stroke-width="10"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                ></path>
-                <path
-                  id="angliru-profile-progress"
-                  d="M40 148 C 120 132 160 120 200 100 C 240 78 280 60 320 52 C 360 46 400 44 440 30 C 468 20 492 16 520 12"
-                  fill="none"
-                  stroke="url(#profileProgressGradient)"
-                  stroke-width="10"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                ></path>
-                <g class="profile-markers" font-size="11" font-weight="600">
-                  <text x="40" y="196">0 km</text>
-                  <text x="200" y="112">7% ramp</text>
-                  <text x="320" y="70">Cueña les Cabres 23%</text>
-                  <text x="490" y="30" text-anchor="end">Summit 12.5 km</text>
-                </g>
-                <g id="angliru-profile-cyclist" class="cyclist-icon" transform="translate(40 148)">
-                  <circle class="wheel" cx="-9" cy="0" r="6"></circle>
-                  <circle class="wheel" cx="9" cy="0" r="6"></circle>
-                  <path class="frame" d="M-9 0 L-2 -9 L11 1 L-4 1 Z"></path>
-                  <path class="body" d="M-2 -9 Q2 -20 11 -16 L6 -5"></path>
-                  <circle class="head" cx="11" cy="-22" r="4"></circle>
-                </g>
-              </svg>
-              <figcaption>Elevation battle · colour shows average slope</figcaption>
-            </figure>
-          </div>
-          <div class="progress-legend">
-            <span class="legend-item">
-              <span class="dot start"></span>La Vega · 0 km
-            </span>
-            <span class="legend-item">
-              <span class="dot mid"></span>Les Cabanes · 6.5 km
-            </span>
-            <span class="legend-item">
-              <span class="dot summit"></span>Alto de l'Angliru · 12.5 km
-            </span>
-          </div>
-          <button id="start-deep-block" class="primary">Start New Deep Block</button>
-        </section>
-
-        <section class="card" id="active-deep-block" aria-live="polite">
-          <h3>New Deep Block</h3>
-          <form id="deep-block-form" class="deep-block-form hidden">
-            <label>
-              Duration (minutes)
-              <input type="number" id="duration" min="1" max="300" required />
-            </label>
-            <label>
-              Goal
-              <input type="text" id="goal" maxlength="100" required />
-            </label>
-            <button type="submit" class="primary">Start</button>
-            <p class="form-feedback" id="deep-block-feedback"></p>
-          </form>
-          <div id="countdown" class="hidden">
-            <div class="timer-circle">
-              <svg viewBox="0 0 120 120">
-                <circle cx="60" cy="60" r="54" class="timer-bg"></circle>
-                <circle cx="60" cy="60" r="54" class="timer-progress" id="timer-progress"></circle>
-              </svg>
-              <div class="timer-text">
-                <span id="timer-display">00:00</span>
-              </div>
-            </div>
-            <button id="cancel-timer" class="secondary">Cancel</button>
-          </div>
-          <div id="post-block" class="hidden">
-            <h4>Great job!</h4>
-            <form id="post-block-form">
-              <label>
-                Focus rating (1-10)
-                <input type="number" id="focus-rating" min="1" max="10" required />
-              </label>
-              <label>
-                Completion rating (1-10)
-                <input type="number" id="completion-rating" min="1" max="10" required />
-              </label>
-              <button type="submit" class="primary">Save Deep Block</button>
-              <p class="form-feedback" id="post-block-feedback"></p>
-            </form>
-          </div>
-        </section>
-
-        <section class="card" id="history">
-          <div class="history-header">
-            <h3>Deep Block History</h3>
-            <button id="refresh-history" class="secondary">Refresh</button>
-          </div>
-          <ul id="history-list" class="history-list"></ul>
-        </section>
-      </div>
-    </div>
-
-    <div id="confetti-container" aria-hidden="true"></div>
-
-    <script type="module" src="script.js"></script>
-  </body>
-</html>
+diff --git a/index.html b/index.html
+new file mode 100644
+index 0000000000000000000000000000000000000000..e4d4802242d685f25ecc98ef4f1c4b89b412b1b7
+--- /dev/null
++++ b/index.html
+@@ -0,0 +1,318 @@
++<!DOCTYPE html>
++<html lang="en">
++  <head>
++    <meta charset="UTF-8" />
++    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++    <title>DeepRide - Deep Work Tracker</title>
++    <link rel="stylesheet" href="style.css" />
++    <link rel="preconnect" href="https://fonts.googleapis.com" />
++    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
++    <link
++      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap"
++      rel="stylesheet"
++    />
++  </head>
++  <body>
++    <div id="config-warning" class="config-warning hidden" role="alert">
++      <strong>Action needed:</strong>
++      <span id="config-warning-message"
++        >Update <code>firebaseConfig</code> inside <code>script.js</code> with your
++        Firebase project values to enable authentication.</span
++      >
++    </div>
++    <div id="app">
++      <main id="auth-screen" class="card">
++        <h1>DeepRide</h1>
++        <p class="subtitle">Conquer the Angliru one Deep Block at a time.</p>
++        <div class="tab-toggle">
++          <button id="show-login" class="active">Login</button>
++          <button id="show-register">Register</button>
++        </div>
++        <form id="login-form" class="auth-form">
++          <label>
++            Email
++            <input type="email" id="login-email" required />
++          </label>
++          <label>
++            Password
++            <input type="password" id="login-password" required />
++          </label>
++          <button type="submit" class="primary">Login</button>
++          <p class="form-feedback" id="login-feedback"></p>
++        </form>
++        <form id="register-form" class="auth-form hidden">
++          <label>
++            Email
++            <input type="email" id="register-email" required />
++          </label>
++          <label>
++            Password
++            <input type="password" id="register-password" required />
++          </label>
++          <button type="submit" class="primary">Create Account</button>
++          <p class="form-feedback" id="register-feedback"></p>
++        </form>
++      </main>
++
++      <div id="dashboard" class="hidden">
++        <header>
++          <div>
++            <h2>DeepRide Dashboard</h2>
++            <p id="welcome"></p>
++          </div>
++          <button id="logout" class="secondary">Log out</button>
++        </header>
++
++        <section class="progress card">
++          <div class="progress-header">
++            <div class="progress-copy">
++              <h3>Alto de l'Angliru</h3>
++              <p class="progress-subtitle">
++                Every Deep Block propels you up the Asturian giant. Watch your
++                rider conquer the map and the gradient.
++              </p>
++            </div>
++            <p id="total-progress-text" class="progress-total">
++              Loading progress...
++            </p>
++          </div>
++          <div class="angliru-visuals">
++            <figure
++              class="angliru-card angliru-map"
++              role="img"
++              aria-label="Map view of the Alto de l'Angliru climb with your rider's progress"
++            >
++              <svg viewBox="0 0 520 320" preserveAspectRatio="xMidYMid meet">
++                <defs>
++                  <linearGradient id="mapSky" x1="0" y1="1" x2="0" y2="0">
++                    <stop offset="0%" stop-color="#041028" />
++                    <stop offset="60%" stop-color="#071c3f" />
++                    <stop offset="100%" stop-color="#0f2b5a" />
++                  </linearGradient>
++                  <linearGradient id="mapRelief" x1="0" y1="1" x2="1" y2="0">
++                    <stop offset="0%" stop-color="#0b1d36" />
++                    <stop offset="70%" stop-color="#122f56" />
++                    <stop offset="100%" stop-color="#123e65" />
++                  </linearGradient>
++                  <radialGradient id="mapGlow" cx="0.82" cy="0.18" r="0.45">
++                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.6" />
++                    <stop offset="65%" stop-color="#0ea5e9" stop-opacity="0.25" />
++                    <stop offset="100%" stop-color="#020617" stop-opacity="0" />
++                  </radialGradient>
++                  <linearGradient id="mapProgressGradient" x1="0" y1="1" x2="1" y2="0">
++                    <stop offset="0%" stop-color="#22d3ee" />
++                    <stop offset="50%" stop-color="#60a5fa" />
++                    <stop offset="100%" stop-color="#a855f7" />
++                  </linearGradient>
++                </defs>
++                <rect width="520" height="320" fill="url(#mapSky)" />
++                <rect width="520" height="320" fill="url(#mapRelief)" opacity="0.55" />
++                <circle cx="420" cy="70" r="120" fill="url(#mapGlow)" />
++                <g class="map-grid">
++                  <path d="M0 40 H520" stroke="rgba(56,189,248,0.08)" />
++                  <path d="M0 120 H520" stroke="rgba(56,189,248,0.08)" />
++                  <path d="M0 200 H520" stroke="rgba(56,189,248,0.08)" />
++                  <path d="M0 280 H520" stroke="rgba(56,189,248,0.08)" />
++                  <path d="M80 0 V320" stroke="rgba(56,189,248,0.08)" />
++                  <path d="M180 0 V320" stroke="rgba(56,189,248,0.08)" />
++                  <path d="M300 0 V320" stroke="rgba(56,189,248,0.08)" />
++                  <path d="M420 0 V320" stroke="rgba(56,189,248,0.08)" />
++                </g>
++                <path
++                  id="angliru-map-shadow"
++                  d="M60 276 C 120 258 146 226 184 204 S 244 156 284 142 S 340 140 362 176 S 380 232 422 214 S 484 150 520 100"
++                  fill="none"
++                  stroke="rgba(15,23,42,0.65)"
++                  stroke-width="18"
++                  stroke-linecap="round"
++                  stroke-linejoin="round"
++                ></path>
++                <path
++                  id="angliru-map-path"
++                  d="M60 276 C 120 258 146 226 184 204 S 244 156 284 142 S 340 140 362 176 S 380 232 422 214 S 484 150 520 100"
++                  fill="none"
++                  stroke="rgba(96,165,250,0.35)"
++                  stroke-width="12"
++                  stroke-linecap="round"
++                  stroke-linejoin="round"
++                ></path>
++                <path
++                  id="angliru-map-progress"
++                  d="M60 276 C 120 258 146 226 184 204 S 244 156 284 142 S 340 140 362 176 S 380 232 422 214 S 484 150 520 100"
++                  fill="none"
++                  stroke="url(#mapProgressGradient)"
++                  stroke-width="12"
++                  stroke-linecap="round"
++                  stroke-linejoin="round"
++                  stroke-opacity="0.9"
++                ></path>
++                <g class="map-markers" fill="none" stroke="rgba(148, 163, 184, 0.55)">
++                  <circle cx="60" cy="276" r="8"></circle>
++                  <circle cx="242" cy="158" r="7"></circle>
++                  <circle cx="520" cy="100" r="9"></circle>
++                </g>
++                <g class="map-labels" font-size="12" font-weight="600">
++                  <text x="60" y="300" text-anchor="middle">La Vega · 0 km</text>
++                  <text x="242" y="138" text-anchor="middle">Les Cabanes · 6.5 km</text>
++                  <text x="520" y="84" text-anchor="end">Summit · 12.5 km</text>
++                </g>
++                <g id="angliru-map-cyclist" class="cyclist-icon" transform="translate(60 276)">
++                  <circle class="wheel" cx="-10" cy="0" r="7"></circle>
++                  <circle class="wheel" cx="10" cy="0" r="7"></circle>
++                  <path class="frame" d="M-10 0 L-2 -10 L12 2 L-4 2 Z"></path>
++                  <path class="body" d="M-2 -10 Q2 -22 12 -18 L6 -6"></path>
++                  <circle class="head" cx="12" cy="-24" r="4"></circle>
++                </g>
++              </svg>
++              <figcaption>Route overview · La Vega to Alto de l'Angliru</figcaption>
++            </figure>
++            <figure
++              class="angliru-card angliru-profile"
++              role="img"
++              aria-label="Elevation profile of the Alto de l'Angliru with gradient colours"
++            >
++              <svg viewBox="0 0 520 220" preserveAspectRatio="xMidYMid meet">
++                <defs>
++                  <linearGradient id="profileSky" x1="0" y1="1" x2="0" y2="0">
++                    <stop offset="0%" stop-color="#030712" />
++                    <stop offset="100%" stop-color="#0b1733" />
++                  </linearGradient>
++                  <linearGradient id="profileGradient" x1="0" y1="1" x2="1" y2="0">
++                    <stop offset="0%" stop-color="#22c55e" />
++                    <stop offset="35%" stop-color="#eab308" />
++                    <stop offset="65%" stop-color="#f97316" />
++                    <stop offset="100%" stop-color="#ef4444" />
++                  </linearGradient>
++                  <linearGradient id="profileProgressGradient" x1="0" y1="1" x2="1" y2="0">
++                    <stop offset="0%" stop-color="#38bdf8" />
++                    <stop offset="60%" stop-color="#60a5fa" />
++                    <stop offset="100%" stop-color="#a855f7" />
++                  </linearGradient>
++                  <radialGradient id="profileSummitGlow" cx="0.95" cy="0.1" r="0.35">
++                    <stop offset="0%" stop-color="#c084fc" stop-opacity="0.6" />
++                    <stop offset="70%" stop-color="#38bdf8" stop-opacity="0.3" />
++                    <stop offset="100%" stop-color="#020617" stop-opacity="0" />
++                  </radialGradient>
++                </defs>
++                <rect width="520" height="220" fill="url(#profileSky)" />
++                <circle id="angliru-profile-glow" cx="480" cy="40" r="120" fill="url(#profileSummitGlow)" />
++                <g class="profile-grid">
++                  <path d="M0 180 H520" stroke="rgba(148,163,184,0.08)" />
++                  <path d="M0 140 H520" stroke="rgba(148,163,184,0.08)" />
++                  <path d="M0 100 H520" stroke="rgba(148,163,184,0.08)" />
++                  <path d="M0 60 H520" stroke="rgba(148,163,184,0.08)" />
++                  <path d="M0 20 H520" stroke="rgba(148,163,184,0.08)" />
++                </g>
++                <path
++                  id="angliru-profile-area"
++                  d="M40 180 L40 148 C 120 132 160 120 200 100 C 240 78 280 60 320 52 C 360 46 400 44 440 30 C 468 20 492 16 520 12 L520 180 Z"
++                  fill="url(#profileGradient)"
++                  opacity="0.8"
++                ></path>
++                <path
++                  id="angliru-profile-path"
++                  d="M40 148 C 120 132 160 120 200 100 C 240 78 280 60 320 52 C 360 46 400 44 440 30 C 468 20 492 16 520 12"
++                  fill="none"
++                  stroke="rgba(15,23,42,0.7)"
++                  stroke-width="10"
++                  stroke-linecap="round"
++                  stroke-linejoin="round"
++                ></path>
++                <path
++                  id="angliru-profile-progress"
++                  d="M40 148 C 120 132 160 120 200 100 C 240 78 280 60 320 52 C 360 46 400 44 440 30 C 468 20 492 16 520 12"
++                  fill="none"
++                  stroke="url(#profileProgressGradient)"
++                  stroke-width="10"
++                  stroke-linecap="round"
++                  stroke-linejoin="round"
++                ></path>
++                <g class="profile-markers" font-size="11" font-weight="600">
++                  <text x="40" y="196">0 km</text>
++                  <text x="200" y="112">7% ramp</text>
++                  <text x="320" y="70">Cueña les Cabres 23%</text>
++                  <text x="490" y="30" text-anchor="end">Summit 12.5 km</text>
++                </g>
++                <g id="angliru-profile-cyclist" class="cyclist-icon" transform="translate(40 148)">
++                  <circle class="wheel" cx="-9" cy="0" r="6"></circle>
++                  <circle class="wheel" cx="9" cy="0" r="6"></circle>
++                  <path class="frame" d="M-9 0 L-2 -9 L11 1 L-4 1 Z"></path>
++                  <path class="body" d="M-2 -9 Q2 -20 11 -16 L6 -5"></path>
++                  <circle class="head" cx="11" cy="-22" r="4"></circle>
++                </g>
++              </svg>
++              <figcaption>Elevation battle · colour shows average slope</figcaption>
++            </figure>
++          </div>
++          <div class="progress-legend">
++            <span class="legend-item">
++              <span class="dot start"></span>La Vega · 0 km
++            </span>
++            <span class="legend-item">
++              <span class="dot mid"></span>Les Cabanes · 6.5 km
++            </span>
++            <span class="legend-item">
++              <span class="dot summit"></span>Alto de l'Angliru · 12.5 km
++            </span>
++          </div>
++          <button id="start-deep-block" class="primary">Start New Deep Block</button>
++        </section>
++
++        <section class="card" id="active-deep-block" aria-live="polite">
++          <h3>New Deep Block</h3>
++          <form id="deep-block-form" class="deep-block-form hidden">
++            <label>
++              Duration (minutes)
++              <input type="number" id="duration" min="1" max="300" required />
++            </label>
++            <label>
++              Goal
++              <input type="text" id="goal" maxlength="100" required />
++            </label>
++            <button type="submit" class="primary">Start</button>
++            <p class="form-feedback" id="deep-block-feedback"></p>
++          </form>
++          <div id="countdown" class="hidden">
++            <div class="timer-circle">
++              <svg viewBox="0 0 120 120">
++                <circle cx="60" cy="60" r="54" class="timer-bg"></circle>
++                <circle cx="60" cy="60" r="54" class="timer-progress" id="timer-progress"></circle>
++              </svg>
++              <div class="timer-text">
++                <span id="timer-display">00:00</span>
++              </div>
++            </div>
++            <button id="cancel-timer" class="secondary">Cancel</button>
++          </div>
++          <div id="post-block" class="hidden">
++            <h4>Great job!</h4>
++            <form id="post-block-form">
++              <label>
++                Focus rating (1-10)
++                <input type="number" id="focus-rating" min="1" max="10" required />
++              </label>
++              <label>
++                Completion rating (1-10)
++                <input type="number" id="completion-rating" min="1" max="10" required />
++              </label>
++              <button type="submit" class="primary">Save Deep Block</button>
++              <p class="form-feedback" id="post-block-feedback"></p>
++            </form>
++          </div>
++        </section>
++
++        <section class="card" id="history">
++          <div class="history-header">
++            <h3>Deep Block History</h3>
++            <button id="refresh-history" class="secondary">Refresh</button>
++          </div>
++          <ul id="history-list" class="history-list"></ul>
++        </section>
++      </div>
++    </div>
++
++    <div id="confetti-container" aria-hidden="true"></div>
++
++    <script type="module" src="script.js"></script>
++  </body>
++</html>
