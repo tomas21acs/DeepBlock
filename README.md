@@ -23,4 +23,4 @@ Deploy by dragging the project folder (containing `index.html`, `style.css`, and
 
 ## Live data requirements
 
-The dashboard pulls the real Angliru route from the public OSRM demo server and samples elevations via the Open-Meteo elevation API at runtime. When running locally or after deployment, make sure the browser has network access so those requests can succeed; if either service is unavailable the app automatically falls back to a built-in approximation of the climb so progress visualisations continue to work.
+The dashboard ships with an `angliru.gpx` track that contains the Alto de l'Angliru route and elevation profile. Both the interactive map and the elevation chart load this file directly, so no third-party routing or elevation services are required at runtime. If the GPX file cannot be loaded for any reason the app reverts to a procedural fallback line so progress visualisations continue to work.

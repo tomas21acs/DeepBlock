@@ -53,6 +53,8 @@ const angliruProfileShadow = document.getElementById('angliru-profile-shadow');
 const angliruProfilePath = document.getElementById('angliru-profile-path');
 const angliruProfileProgress = document.getElementById('angliru-profile-progress');
 const angliruProfileGlow = document.getElementById('angliru-profile-glow');
+const angliruProfileBaseline = document.getElementById('angliru-profile-baseline');
+const angliruProfileTicksGroup = document.getElementById('angliru-profile-ticks');
 const angliruProfileCyclist = document.getElementById('angliru-profile-cyclist');
 const angliruProfileLineGradient = document.getElementById(
   'angliru-profile-line-gradient'
@@ -80,6 +82,7 @@ const configWarning = document.getElementById('config-warning');
 const configWarningMessage = document.getElementById('config-warning-message');
 
 const TOTAL_KM_GOAL = 12.5;
+const ANGLIRU_GPX_URL = 'angliru.gpx';
 const angliruRouteFallback = createFallbackRoute();
 let angliruRoute = [...angliruRouteFallback];
 let angliruRouteTotalDistance =
@@ -286,7 +289,7 @@ async function setupAngliruVisuals() {
       angliruRoute = liveRoute;
     }
   } catch (error) {
-    console.warn('Unable to fetch live Angliru data, using fallback', error);
+    console.warn('Unable to load Angliru GPX, using fallback route', error);
   }
 
   angliruRouteTotalDistance =
@@ -530,13 +533,17 @@ function initializeAngliruProfile() {
   const profileData = buildProfilePath(angliruRoute);
   if (!profileData) return;
 
-  const { linePath, areaPath, gradientStops } = profileData;
+  const { linePath, areaPath, gradientStops, baselinePath, ticks } = profileData;
 
   if (angliruProfileShadow) {
     angliruProfileShadow.setAttribute('d', areaPath);
   }
   if (angliruProfileGlow) {
     angliruProfileGlow.setAttribute('d', linePath);
+  }
+
+  if (angliruProfileBaseline && baselinePath) {
+    angliruProfileBaseline.setAttribute('d', baselinePath);
   }
 
   angliruProfilePath.setAttribute('d', linePath);
@@ -548,6 +555,7 @@ function initializeAngliruProfile() {
   angliruProfileProgress.style.opacity = 0.28;
 
   updateProfileGradients(gradientStops);
+  renderProfileTicks(ticks);
   positionCyclistOnProfile(0);
 }
 
@@ -582,10 +590,56 @@ function buildProfilePath(route) {
   const baseEndX = scaleX(route[route.length - 1].distance);
   const baseY = height - padding.bottom;
   const areaPath = `${linePath} L ${baseEndX.toFixed(2)} ${baseY} L ${baseStartX.toFixed(2)} ${baseY} Z`;
+  const baselinePath = `M ${padding.left.toFixed(2)} ${baseY.toFixed(2)} L ${(width - padding.right).toFixed(2)} ${baseY.toFixed(2)}`;
 
   const gradientStops = computeGradientStops(route, totalDistance);
+  const ticks = createDistanceTicks(totalDistance, scaleX, baseY);
 
-  return { linePath, areaPath, gradientStops };
+  return { linePath, areaPath, gradientStops, baselinePath, ticks };
+}
+
+function renderProfileTicks(ticks) {
+  if (!angliruProfileTicksGroup) return;
+  const markup = (ticks || [])
+    .map(
+      (tick) => `
+        <line class="profile-tick-line" x1="${tick.x.toFixed(2)}" y1="${tick.lineY1.toFixed(2)}" x2="${tick.x.toFixed(2)}" y2="${tick.lineY2.toFixed(2)}"></line>
+        <text class="profile-tick-label" text-anchor="middle" x="${tick.x.toFixed(2)}" y="${tick.labelY.toFixed(2)}">${tick.label}</text>
+      `
+    )
+    .join('');
+  angliruProfileTicksGroup.innerHTML = markup;
+}
+
+function createDistanceTicks(totalDistance, scaleX, baselineY) {
+  const ticks = [];
+  const interval = 2.5;
+  const maxDistance = Math.max(totalDistance, TOTAL_KM_GOAL);
+
+  for (let distance = 0; distance <= maxDistance + 0.001; distance += interval) {
+    const clamped = Math.min(distance, totalDistance);
+    ticks.push({
+      x: scaleX(clamped),
+      lineY1: baselineY,
+      lineY2: baselineY - 10,
+      labelY: baselineY + 18,
+      label: `${distance.toFixed(distance % 1 === 0 ? 0 : 1)} km`,
+    });
+  }
+
+  const lastTick = ticks[ticks.length - 1];
+  const targetX = scaleX(totalDistance);
+  if (!lastTick || Math.abs(lastTick.x - targetX) > 1) {
+    ticks.push({
+      x: targetX,
+      lineY1: baselineY,
+      lineY2: baselineY - 10,
+      labelY: baselineY + 18,
+      label: `${totalDistance.toFixed(1)} km`,
+    });
+  }
+
+  return ticks;
 }
 
 function updateProfileGradients(stops) {
@@ -668,64 +722,64 @@ function getRoutePointByDistance(distanceKm) {
 }
 
 async function fetchAngliruRouteData() {
-  const start = { lat: 43.2296, lng: -5.9217 };
-  const summit = { lat: 43.1873, lng: -5.9249 };
-  const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${summit.lng},${summit.lat}?overview=full&geometries=geojson`;
-  const response = await fetch(osrmUrl);
+  const response = await fetch(ANGLIRU_GPX_URL, { cache: 'no-cache' });
   if (!response.ok) {
-    throw new Error('Unable to fetch OSRM route');
+    throw new Error('Unable to load Angliru GPX');
   }
-  const data = await response.json();
-  const coordinates = data?.routes?.[0]?.geometry?.coordinates;
-  if (!Array.isArray(coordinates) || coordinates.length < 2) {
-    throw new Error('OSRM route missing geometry');
+  const gpxText = await response.text();
+  return parseAngliruGpx(gpxText);
+}
+
+function parseAngliruGpx(gpxText) {
+  const parser = new DOMParser();
+  const xml = parser.parseFromString(gpxText, 'application/xml');
+  const errorNode = xml.querySelector('parsererror');
+  if (errorNode) {
+    throw new Error('Invalid GPX data');
   }
 
-  const latLngPoints = coordinates.map(([lng, lat]) => ({ lat, lng }));
-  const trimmed = thinRoute(latLngPoints, 200);
-  const cumulative = computeCumulativeDistances(trimmed);
-  const samples = sampleRouteForElevation(cumulative, 80);
-  let enriched;
-  try {
-    const elevations = await fetchElevations(samples);
-    enriched = assignElevations(cumulative, samples, elevations);
-  } catch (error) {
-    console.warn('Elevation service unavailable, using estimated profile', error);
-    enriched = cumulative.map((point) => ({
-      ...point,
-      elevation: estimateAngliruElevation(point.distance),
-    }));
+  const trkpts = Array.from(xml.getElementsByTagName('trkpt'));
+  if (!trkpts.length) {
+    throw new Error('GPX missing track points');
   }
 
-  return enriched.map((point) => ({
+  let cumulative = 0;
+  let previous = null;
+  const parsed = [];
+
+  trkpts.forEach((trkpt) => {
+    const lat = parseFloat(trkpt.getAttribute('lat'));
+    const lng = parseFloat(trkpt.getAttribute('lon'));
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return;
+    }
+    const elevationNode = trkpt.getElementsByTagName('ele')[0];
+    const elevationValue = elevationNode ? parseFloat(elevationNode.textContent) : 0;
+    if (previous) {
+      cumulative += haversineDistance(previous, { lat, lng });
+    }
+    parsed.push({
+      lat,
+      lng,
+      elevation: Number.isFinite(elevationValue) ? elevationValue : 0,
+      distance: cumulative,
+    });
+    previous = { lat, lng };
+  });
+
+  if (!parsed.length) {
+    throw new Error('GPX points could not be parsed');
+  }
+
+  const totalDistance = parsed[parsed.length - 1].distance || TOTAL_KM_GOAL;
+  const scale = totalDistance > 0 ? TOTAL_KM_GOAL / totalDistance : 1;
+
+  return parsed.map((point) => ({
     lat: point.lat,
     lng: point.lng,
-    distance: point.distance,
+    distance: point.distance * scale,
     elevation: Math.round(point.elevation),
   }));
-}
-
-function thinRoute(points, maxPoints) {
-  if (points.length <= maxPoints) return points;
-  const step = Math.ceil(points.length / maxPoints);
-  const result = [];
-  for (let i = 0; i < points.length; i += step) {
-    result.push(points[i]);
-  }
-  if (result[result.length - 1] !== points[points.length - 1]) {
-    result.push(points[points.length - 1]);
-  }
-  return result;
-}
-
-function computeCumulativeDistances(points) {
-  let distance = 0;
-  return points.map((point, index) => {
-    if (index > 0) {
-      distance += haversineDistance(points[index - 1], point);
-    }
-    return { ...point, distance };
-  });
 }
 
 function haversineDistance(a, b) {
@@ -743,106 +797,46 @@ function haversineDistance(a, b) {
   return R * c;
 }
 
-function sampleRouteForElevation(points, maxSamples) {
-  if (points.length <= maxSamples) {
-    return points.map((point, index) => ({ ...point, index }));
-  }
-  const step = Math.ceil(points.length / maxSamples);
-  const samples = [];
-  for (let i = 0; i < points.length; i += step) {
-    samples.push({ ...points[i], index: i });
-  }
-  if (samples[samples.length - 1].index !== points.length - 1) {
-    samples.push({ ...points[points.length - 1], index: points.length - 1 });
-  }
-  return samples;
-}
-
-async function fetchElevations(samples) {
-  const latitudes = samples.map((point) => point.lat.toFixed(6)).join(',');
-  const longitudes = samples.map((point) => point.lng.toFixed(6)).join(',');
-  const url = `https://api.open-meteo.com/v1/elevation?latitude=${latitudes}&longitude=${longitudes}`;
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error('Unable to fetch elevation data');
-  }
-  const data = await response.json();
-  const values = data?.data?.elevation || data?.elevation || [];
-  if (!Array.isArray(values) || values.length === 0) {
-    throw new Error('Elevation data unavailable');
-  }
-  return values;
-}
-
-function assignElevations(points, samples, elevations) {
-  const result = points.map((point) => ({ ...point, elevation: null }));
-  samples.forEach((sample, index) => {
-    const elevation = elevations[index];
-    if (typeof elevation === 'number') {
-      result[sample.index].elevation = elevation;
-    }
-  });
-
-  let lastKnownIndex = null;
-  for (let i = 0; i < result.length; i += 1) {
-    if (typeof result[i].elevation === 'number') {
-      lastKnownIndex = i;
-      continue;
-    }
-    const nextKnown = result.find((point, idx) => idx > i && typeof point.elevation === 'number');
-    const nextIndex = nextKnown ? result.indexOf(nextKnown) : null;
-    if (lastKnownIndex === null && nextKnown) {
-      result[i].elevation = nextKnown.elevation;
-    } else if (!nextKnown && lastKnownIndex !== null) {
-      result[i].elevation = result[lastKnownIndex].elevation;
-    } else if (lastKnownIndex !== null && nextKnown && nextIndex !== null) {
-      const ratio = (i - lastKnownIndex) / (nextIndex - lastKnownIndex);
-      result[i].elevation =
-        result[lastKnownIndex].elevation +
-        (nextKnown.elevation - result[lastKnownIndex].elevation) * ratio;
-    } else {
-      result[i].elevation = estimateAngliruElevation(result[i].distance);
-    }
-  }
-
-  return result;
-}
-
-function estimateAngliruElevation(distanceKm) {
-  const baseElevation = 315;
-  const summitElevation = 1573;
-  const total = Math.max(0.001, angliruRouteTotalDistance || TOTAL_KM_GOAL);
-  const ratio = Math.min(1, Math.max(0, distanceKm / total));
-  const early = ratio * 0.55;
-  const steepKick = 1 / (1 + Math.exp(-10 * (ratio - 0.68)));
-  const blended = Math.min(1, early + steepKick * 0.45);
-  return baseElevation + (summitElevation - baseElevation) * blended;
-}
-
 function createFallbackRoute() {
-  const start = { lat: 43.2296, lng: -5.9217, elevation: 315 };
-  const summit = { lat: 43.1873, lng: -5.9249, elevation: 1573 };
-  const segments = 80;
+  const start = { lat: 43.2296, lng: -5.9217 };
+  const summit = { lat: 43.1873, lng: -5.9249 };
   const points = [];
+  const segments = 260;
+
   for (let i = 0; i <= segments; i += 1) {
-    const ratio = i / segments;
-    const lat = start.lat + (summit.lat - start.lat) * ratio;
-    const lng = start.lng + (summit.lng - start.lng) * ratio;
-    const eased = Math.pow(ratio, 1.35);
-    const elevation =
-      start.elevation + (summit.elevation - start.elevation) * eased * (0.9 + 0.1 * ratio);
+    const t = i / segments;
+    const baseLat = start.lat + (summit.lat - start.lat) * t;
+    const baseLng = start.lng + (summit.lng - start.lng) * t;
+    const amplitude = 0.012 * (1 - Math.min(1, Math.abs(0.5 - t) * 1.3));
+    const wiggle =
+      Math.sin(t * Math.PI * 8.5) * amplitude + Math.sin(t * Math.PI * 2.4) * (amplitude * 0.45);
+    const lat = baseLat;
+    const lng = baseLng + wiggle;
+    const elevation = 320 + (1573 - 320) * Math.pow(t, 1.35);
     points.push({ lat, lng, elevation });
   }
 
-  const withDistances = computeCumulativeDistances(points);
-  const total = withDistances[withDistances.length - 1]?.distance || 1;
-  const scale = TOTAL_KM_GOAL / total;
+  let cumulative = 0;
+  const enriched = points.map((point, index) => {
+    if (index > 0) {
+      cumulative += haversineDistance(points[index - 1], point);
+    }
+    return {
+      lat: point.lat,
+      lng: point.lng,
+      elevation: Math.round(point.elevation),
+      distance: cumulative,
+    };
+  });
 
-  return withDistances.map((point) => ({
+  const totalDistance = enriched[enriched.length - 1]?.distance || TOTAL_KM_GOAL;
+  const scale = totalDistance > 0 ? TOTAL_KM_GOAL / totalDistance : 1;
+
+  return enriched.map((point) => ({
     lat: point.lat,
     lng: point.lng,
+    elevation: point.elevation,
     distance: point.distance * scale,
-    elevation: Math.round(point.elevation),
   }));
 }
 
