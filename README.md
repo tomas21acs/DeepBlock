@@ -20,7 +20,3 @@ If any config values are missing or incorrect you will see a banner in the UI th
 ## Deployment
 
 Deploy by dragging the project folder (containing `index.html`, `style.css`, and `script.js`) into [Netlify Drop](https://app.netlify.com/drop) or uploading it to Vercel as a static site.
-
-## Live data requirements
-
-The dashboard ships with an `angliru.gpx` track that contains the Alto de l'Angliru route and elevation profile. Both the interactive map and the elevation chart load this file directly, so no third-party routing or elevation services are required at runtime. If the GPX file cannot be loaded for any reason the app reverts to a procedural fallback line so progress visualisations continue to work.
