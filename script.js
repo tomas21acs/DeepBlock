@@ -22,12 +22,13 @@ import {
 
 // 1. Insert your Firebase configuration below. Replace the placeholder values with your project's keys.
 const firebaseConfig = {
-  apiKey: 'YOUR_API_KEY',
-  authDomain: 'YOUR_AUTH_DOMAIN',
-  projectId: 'YOUR_PROJECT_ID',
-  storageBucket: 'YOUR_STORAGE_BUCKET',
-  messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-  appId: 'YOUR_APP_ID',
+  apiKey: "AIzaSyBOrvsVrviKeq5iUebAqiUWdNX4IYSJmF4",
+  authDomain: "deepride-d18ae.firebaseapp.com",
+  projectId: "deepride-d18ae",
+  storageBucket: "deepride-d18ae.firebasestorage.app",
+  messagingSenderId: "606511315827",
+  appId: "1:606511315827:web:94544fde3f839f9151a306",
+  measurementId: "G-YSCPQ7X5SC"
 };
 
 // 2. Initialize Firebase using your configuration above.
