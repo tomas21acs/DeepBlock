@@ -20,9 +20,30 @@ body {
   background: var(--bg-gradient);
   color: var(--text);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 2rem 1rem;
+  gap: 1.5rem;
+}
+
+.config-warning {
+  width: min(900px, 100%);
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  background: rgba(248, 113, 113, 0.12);
+  color: #fecaca;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  line-height: 1.45;
+  box-shadow: 0 12px 30px -12px rgba(248, 113, 113, 0.45);
+}
+
+.config-warning strong {
+  color: #fca5a5;
 }
 
 #app {
@@ -30,9 +51,9 @@ body {
 }
 
 h1,
- h2,
- h3,
- h4 {
+h2,
+h3,
+h4 {
   font-weight: 700;
 }
 
@@ -148,86 +169,202 @@ header {
   gap: 1rem;
 }
 
-.progress-road {
-  position: relative;
-  margin-top: 1.5rem;
-  height: 120px;
-}
-
-.progress-track {
-  position: absolute;
-  left: 5%;
-  right: 5%;
-  top: 50%;
-  height: 10px;
-  background: rgba(148, 163, 184, 0.2);
-  border-radius: 999px;
-  transform: translateY(-50%);
-}
-
-.progress-fill {
-  position: absolute;
-  left: 5%;
-  top: 50%;
-  height: 10px;
-  background: linear-gradient(90deg, var(--accent), #22d3ee);
-  border-radius: 999px;
-  transform: translateY(-50%);
-  width: 0%;
-}
-
-.cyclist {
-  position: absolute;
-  top: calc(50% - 28px);
-  font-size: 2rem;
-  transition: left 0.6s ease;
-}
-
-.km-labels {
-  position: absolute;
-  bottom: 0;
-  width: 90%;
-  left: 5%;
+.progress-header {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  font-size: 0.8rem;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+}
+
+.progress-copy h3 {
+  margin: 0;
+}
+
+.progress-subtitle {
+  margin-top: 0.35rem;
   color: var(--muted);
+  font-size: 0.95rem;
+  max-width: 32ch;
+}
+
+.progress-total {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text);
+  font-size: 1.05rem;
+  text-align: right;
+}
+
+.angliru-visuals {
+  --progress: 0;
+  margin-top: 1.75rem;
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(2, minmax(320px, 1fr));
+  align-items: stretch;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scroll-snap-type: x mandatory;
+}
+
+.angliru-visuals > * {
+  scroll-snap-align: center;
+}
+
+.angliru-card {
+  position: relative;
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  border: 1px solid rgba(56, 189, 248, 0.16);
+  background: radial-gradient(circle at 80% 10%, rgba(59, 130, 246, 0.14), rgba(8, 47, 73, 0.05)),
+    linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.65));
+  box-shadow: 0 24px 48px rgba(2, 12, 27, 0.55);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+  display: flex;
+  align-items: stretch;
+}
+
+.angliru-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 85% 15%,
+    rgba(96, 165, 250, calc(0.08 + var(--progress) * 0.25)),
+    rgba(59, 130, 246, 0)
+  );
+  mix-blend-mode: screen;
+}
+
+.angliru-card > * {
+  flex: 1 1 auto;
+}
+
+.angliru-map-card {
+  padding: 0;
+  min-height: 340px;
+}
+
+#angliru-map {
+  width: 100%;
+  height: 100%;
+  min-height: 340px;
+}
+
+.map-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.25), transparent 65%);
+  mix-blend-mode: screen;
+}
+
+.leaflet-container {
+  background: #020617;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.leaflet-control-container .leaflet-bottom.leaflet-right {
+  right: 1rem;
+  bottom: 1rem;
+}
+
+.leaflet-control-attribution {
+  background: rgba(15, 23, 42, 0.75) !important;
+  color: rgba(148, 163, 184, 0.8) !important;
+  border-radius: 999px !important;
+  padding: 0.25rem 0.75rem !important;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+}
+
+.leaflet-control-attribution a {
+  color: rgba(148, 210, 255, 0.9) !important;
+}
+
+.angliru-tooltip {
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  border-radius: 999px;
+  color: rgba(226, 232, 240, 0.9);
+  padding: 0.3rem 0.75rem;
+  box-shadow: 0 12px 24px rgba(2, 12, 27, 0.45);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.angliru-profile-card {
+  min-height: 340px;
+}
+
+.profile-background {
+  fill: #020a1a;
+}
+
+.cyclist-icon {
+  transform-origin: center;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cyclist-icon .wheel {
+  fill: rgba(15, 23, 42, 0.92);
+  stroke: rgba(148, 163, 184, 0.8);
+  stroke-width: 2;
+}
+
+.cyclist-icon .frame,
+.cyclist-icon .body {
+  fill: none;
+  stroke-width: 3;
+  stroke: rgba(56, 189, 248, 0.95);
+}
+
+.cyclist-icon .body {
+  stroke: rgba(96, 165, 250, 0.95);
+}
+
+.cyclist-icon .head {
+  fill: rgba(226, 232, 240, 0.95);
+  stroke: rgba(56, 189, 248, 0.95);
+  stroke-width: 1.5;
 }
 
 .timer-circle {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 200px;
-  margin-inline: auto;
   position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 1.5rem;
 }
 
 .timer-circle svg {
-  width: 200px;
-  height: 200px;
+  transform: rotate(-90deg);
 }
 
 .timer-bg {
   fill: none;
-  stroke: rgba(56, 189, 248, 0.1);
-  stroke-width: 12;
+  stroke: rgba(15, 23, 42, 0.6);
+  stroke-width: 8;
 }
 
 .timer-progress {
   fill: none;
   stroke: var(--accent);
-  stroke-width: 12;
-  stroke-linecap: round;
-  transform: rotate(-90deg);
-  transform-origin: 50% 50%;
+  stroke-width: 8;
   stroke-dasharray: 339.292;
   stroke-dashoffset: 339.292;
-  transition: stroke 0.3s ease;
+  transition: stroke-dashoffset 0.25s linear;
 }
 
 .timer-text {
   position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
   font-size: 2rem;
   font-weight: 700;
 }
@@ -236,83 +373,106 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  gap: 1rem;
 }
 
 .history-list {
+  list-style: none;
   display: grid;
   gap: 1rem;
-  list-style: none;
+  margin-top: 1.5rem;
+  padding: 0;
 }
 
 .history-item {
-  padding: 1rem;
   border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
   background: rgba(15, 23, 42, 0.7);
   border: 1px solid rgba(56, 189, 248, 0.15);
-  display: grid;
-  gap: 0.5rem;
+  box-shadow: 0 16px 32px rgba(2, 12, 27, 0.45);
 }
 
 .history-item h4 {
+  margin-bottom: 0.5rem;
   font-size: 1.1rem;
 }
 
 .history-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.75rem 1.5rem;
   color: var(--muted);
   font-size: 0.9rem;
+  letter-spacing: 0.02em;
 }
 
 #confetti-container {
-  pointer-events: none;
   position: fixed;
   inset: 0;
+  pointer-events: none;
   overflow: hidden;
-  z-index: 1000;
 }
 
 .confetti-piece {
   position: absolute;
-  width: 8px;
-  height: 14px;
+  width: 10px;
+  height: 16px;
   border-radius: 2px;
+  animation: confetti-fall 1.8s forwards ease-in;
   opacity: 0;
-  animation: fall 2.5s linear forwards;
 }
 
-@keyframes fall {
+@keyframes confetti-fall {
   0% {
-    transform: translate3d(0, -100%, 0) rotateZ(0deg);
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
     opacity: 1;
   }
   100% {
-    transform: translate3d(0, 100vh, 0) rotateZ(360deg);
+    transform: translateY(120vh) rotate(360deg);
     opacity: 0;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   body {
-    padding: 1.5rem 0.75rem;
+    padding: 1.5rem 1rem;
   }
 
+  .progress-total {
+    text-align: left;
+  }
+
+  .angliru-visuals {
+    grid-template-columns: minmax(260px, 1fr);
+    scroll-snap-type: x mandatory;
+    overflow-x: scroll;
+  }
+}
+
+@media (max-width: 640px) {
   .card {
     padding: 1.5rem;
   }
 
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .progress-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .progress-total {
+    font-size: 0.95rem;
+  }
+
   .timer-circle {
     width: 160px;
-  }
-
-  .timer-circle svg {
-    width: 160px;
     height: 160px;
-  }
-
-  .timer-text {
-    font-size: 1.5rem;
   }
 }
