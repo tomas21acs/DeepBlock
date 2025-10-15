@@ -20,3 +20,7 @@ If any config values are missing or incorrect you will see a banner in the UI th
 ## Deployment
 
 Deploy by dragging the project folder (containing `index.html`, `style.css`, and `script.js`) into [Netlify Drop](https://app.netlify.com/drop) or uploading it to Vercel as a static site.
+
+## Live data requirements
+
+The dashboard pulls the real Angliru route from the public OSRM demo server and samples elevations via the Open-Meteo elevation API at runtime. When running locally or after deployment, make sure the browser has network access so those requests can succeed; if either service is unavailable the app automatically falls back to a built-in approximation of the climb so progress visualisations continue to work.
